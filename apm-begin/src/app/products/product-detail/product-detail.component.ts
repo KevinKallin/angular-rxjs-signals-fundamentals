@@ -1,9 +1,10 @@
-import {Component, inject, Input} from '@angular/core';
+import {Component, computed, inject, Input} from '@angular/core';
 
 import {NgIf, NgFor, CurrencyPipe, AsyncPipe} from '@angular/common';
 import { Product } from '../product';
 import {ProductService} from "../product.service";
 import {catchError, EMPTY, Subscription, tap} from "rxjs";
+import {CartService} from "../../cart/cart.service";
 
 @Component({
     selector: 'pm-product-detail',
@@ -12,25 +13,24 @@ import {catchError, EMPTY, Subscription, tap} from "rxjs";
   imports: [NgIf, NgFor, CurrencyPipe, AsyncPipe]
 })
 export class ProductDetailComponent {
-  errorMessage = '';
+
 
   private productService = inject(ProductService);
+  private cartService = inject(CartService);
 
   // Product to display
-  product$ = this.productService.product$
-    .pipe(
-      catchError(error => {
-        this.errorMessage = error;
-        return EMPTY;
-      }));
+  product = this.productService.product;
+  errorMessage = this.productService.productError;
 
   // Set the page title
   //pageTitle = this.product ? `Product Detail for: ${this.product.productName}` : 'Product Detail';
-  pageTitle = 'ProductDetailt';
+  pageTitle = computed(() =>
+    this.product()
+      ? `Product detail for: ${this.product()?.productName}`
+      : 'Product Detail');
 
-  sub!: Subscription;
-  //
 
   addToCart(product: Product) {
+    this.cartService.addToCart(product);
   }
 }
